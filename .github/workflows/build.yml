@@ -1,0 +1,33 @@
+name: Build
+
+# This workflow runs on every push to any branch,
+# and on every pull request targeting main.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    # Run on the latest Ubuntu virtual machine GitHub provides
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1 — Check out your repo code onto the virtual machine
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2 — Install CMake and a C++ compiler
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++
+
+      # Step 3 — Configure the build (equivalent to cmake -S . -B build)
+      - name: Configure
+        run: cmake -S . -B build
+
+      # Step 4 — Compile the project (equivalent to cmake --build build)
+      - name: Build
+        run: cmake --build build
