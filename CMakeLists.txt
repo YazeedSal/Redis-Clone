@@ -12,6 +12,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_executable(redis_clone
     src/main.cpp
     src/server.cpp
+    src/resp_parser.cpp
 )
 
 target_include_directories(redis_clone PRIVATE include)

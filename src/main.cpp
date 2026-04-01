@@ -3,7 +3,6 @@
 
 int main() {
     try {
-        // 6379 is the default Redis port
         Server server(6379);
         server.start();
     } catch (const std::exception& e) {
