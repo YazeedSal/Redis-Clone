@@ -17,15 +17,21 @@ cmake --build build
 
 | Command | Syntax | Description |
 |---------|--------|-------------|
-| PING | `PING` | Returns PONG, used to test connection |
+| PING | `PING [message]` | Returns PONG or echoes message |
+| SET | `SET key value` | Store a key-value pair |
+| GET | `GET key` | Retrieve value by key, nil if missing |
+| DEL | `DEL key` | Delete a key, returns 1 if it existed |
+| EXISTS | `EXISTS key` | Returns 1 if key exists, 0 otherwise |
+| EXPIRE | `EXPIRE key seconds` | Set a TTL on a key |
+| TTL | `TTL key` | Get remaining TTL, -1 if no expiry, -2 if missing |
 
 ## Project Status
 
-| Component          | Status      |
-|--------------------|-------------|
-| TCP Server         | ✅ Done     |
-| RESP Parser        | ✅ Done     |
-| RESP Serializer    | ✅ Done     |
-| Key-Value Store    | ⏳ Pending  |
-| Command Dispatcher | ⏳ Pending  |
-| CI (GitHub Actions)| ✅ Done     |
+| Component           | Status    |
+|---------------------|-----------|
+| TCP Server          | ✅ Done   |
+| RESP Parser         | ✅ Done   |
+| RESP Serializer     | ✅ Done   |
+| Key-Value Store     | ✅ Done   |
+| Command Dispatcher  | ✅ Done   |
+| CI (GitHub Actions) | ✅ Done   |
