@@ -1,7 +1,5 @@
 name: Build
 
-# This workflow runs on every push to any branch,
-# and on every pull request targeting main.
 on:
   push:
     branches: ["**"]
@@ -10,24 +8,76 @@ on:
 
 jobs:
   build:
-    # Run on the latest Ubuntu virtual machine GitHub provides
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1 — Check out your repo code onto the virtual machine
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2 — Install CMake and a C++ compiler
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake g++
+          sudo apt-get install -y cmake g++ redis-tools
 
-      # Step 3 — Configure the build (equivalent to cmake -S . -B build)
       - name: Configure
         run: cmake -S . -B build
 
-      # Step 4 — Compile the project (equivalent to cmake --build build)
       - name: Build
         run: cmake --build build
+
+      - name: Start server
+        run: ./build/redis_clone &
+
+      - name: Wait for server to be ready
+        run: sleep 1
+
+      - name: Test PING
+        run: |
+          response=$(redis-cli -p 6379 PING)
+          if [ "$response" != "PONG" ]; then
+            echo "PING test failed: got '$response'"
+            exit 1
+          fi
+          echo "PING passed"
+
+      - name: Test SET and GET
+        run: |
+          redis-cli -p 6379 SET name Ahmed
+          response=$(redis-cli -p 6379 GET name)
+          if [ "$response" != "Ahmed" ]; then
+            echo "SET/GET test failed: got '$response'"
+            exit 1
+          fi
+          echo "SET/GET passed"
+
+      - name: Test DEL
+        run: |
+          redis-cli -p 6379 SET temp value
+          redis-cli -p 6379 DEL temp
+          response=$(redis-cli -p 6379 GET temp)
+          if [ "$response" != "" ]; then
+            echo "DEL test failed: got '$response'"
+            exit 1
+          fi
+          echo "DEL passed"
+
+      - name: Test EXISTS
+        run: |
+          redis-cli -p 6379 SET existing value
+          response=$(redis-cli -p 6379 EXISTS existing)
+          if [ "$response" != "1" ]; then
+            echo "EXISTS test failed: got '$response'"
+            exit 1
+          fi
+          echo "EXISTS passed"
+
+      - name: Test EXPIRE and TTL
+        run: |
+          redis-cli -p 6379 SET expiring value
+          redis-cli -p 6379 EXPIRE expiring 100
+          response=$(redis-cli -p 6379 TTL expiring)
+          if [ "$response" -le "0" ]; then
+            echo "EXPIRE/TTL test failed: got '$response'"
+            exit 1
+          fi
+          echo "EXPIRE/TTL passed"
