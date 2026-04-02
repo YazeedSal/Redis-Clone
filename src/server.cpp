@@ -12,7 +12,13 @@
 #include <unistd.h>
 #include <cstring>
 
-Server::Server(int port) : port_(port), server_fd_(-1) {}
+
+Server::Server(int port)
+    : port_(port),
+      server_fd_(-1),
+      dispatcher_(store_)
+{}
+
 
 void Server::setup_socket() {
     // 1. Create the socket file descriptor
@@ -65,48 +71,32 @@ void Server::accept_loop() {
 
 void Server::handle_client(int client_fd) {
 	char buffer[4096];
+	while (true) {
+        ssize_t bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
 
-    	while (true) {
-        	ssize_t bytes_read = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+        if (bytes_read <= 0) {
+            std::cout << "Client disconnected (fd=" << client_fd << ")\n";
+            close(client_fd);
+            return;
+        }
 
-        	if (bytes_read <= 0) {
-            		std::cout << "Client disconnected (fd=" << client_fd << ")\n";
-            		close(client_fd);
-            		return;
-        	}	
+        buffer[bytes_read] = '\0';
+        std::string raw(buffer, bytes_read);
 
-        	buffer[bytes_read] = '\0';
-        	std::string raw(buffer, bytes_read);
+        std::string response;
+        try {
+            Command cmd = parser_.parse(raw);
 
-        	// Try to parse the incoming bytes as a RESP command.
-        	// If parsing fails (malformed input), send an error back
-        	// and keep the connection alive for the next command.
-        	std::string response;
-        	try {
-            		Command cmd = parser_.parse(raw);
+            // Hand the command off to the dispatcher.
+            // It handles all routing and store interaction.
+            response = dispatcher_.dispatch(cmd);
 
-            		// cmd.args[0] is the command name — always uppercase from redis-cli
-            		// For now we only handle PING. Everything else gets an error.
-            		// We will expand this as we build the command dispatcher.
-            		std::string command_name = cmd.args[0];
+        } catch (const std::exception& e) {
+            response = RespSerializer::error(e.what());
+        }
 
-            	if (command_name == "PING") {
-                	// PING is the simplest Redis command.
-                	// redis-cli sends it on startup to check the connection.
-                	// The correct response is the simple string +PONG\r\n
-                	response = "+PONG\r\n";
-            	} else {
-                	response = RespSerializer::error(
-                    	"unknown command '" + command_name + "'"
-                	);
-            	}
-
-        	} catch (const std::exception& e) {
-            		response = RespSerializer::error(e.what());
-        	}
-
-        	send(client_fd, response.c_str(), response.size(), 0);
-    }
+        send(client_fd, response.c_str(), response.size(), 0);
+    }	
 }
 
 void Server::start() {

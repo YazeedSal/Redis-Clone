@@ -5,6 +5,8 @@
 #include <string>
 #include "resp_parser.h"
 #include "resp_serializer.h"
+#include "store.h"
+#include "dispatcher.h"
 
 class Server {
 	public:
@@ -15,10 +17,9 @@ class Server {
 		int port_;
 	        int server_fd_;
 
-		// The parser and serializer are shared across all client threads.
-    		// They are stateless so no mutex is needed for them.
+		Store store_;
     		RespParser parser_;
-    		RespSerializer serializer_;
+    		Dispatcher dispatcher_;
 
 	        void setup_socket();
 	        void accept_loop();
