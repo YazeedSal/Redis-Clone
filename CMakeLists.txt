@@ -13,6 +13,7 @@ add_executable(redis_clone
     src/main.cpp
     src/server.cpp
     src/resp_parser.cpp
+    src/resp_serializer.cpp
 )
 
 target_include_directories(redis_clone PRIVATE include)
