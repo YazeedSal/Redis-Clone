@@ -23,7 +23,9 @@ std::string Dispatcher::dispatch(const Command& cmd) {
     if (name == "EXPIRE") return handle_expire(cmd);
     if (name == "TTL")    return handle_ttl(cmd);
     if (name == "KEYS")   return handle_keys(cmd);
-
+    if (name == "INCR")   return handle_incr(cmd);
+    if (name == "DECR")   return handle_decr(cmd);
+   
     return RespSerializer::error(
         "unknown command '" + cmd.args[0] + "'"
     );
@@ -159,4 +161,39 @@ std::string Dispatcher::handle_keys(const Command& cmd) {
     }
 
     return response;
+}
+
+
+std::string Dispatcher::handle_incr(const Command& cmd) {
+    // INCR requires exactly 1 argument: the key
+    if (cmd.args.size() < 2) {
+        return RespSerializer::error(
+            "wrong number of arguments for 'INCR'"
+        );
+    }
+
+    auto result = store_.incr(cmd.args[1]);
+
+    if (!result.ok) {
+        return RespSerializer::error(result.error);
+    }
+
+    return RespSerializer::integer(result.value);
+}
+
+std::string Dispatcher::handle_decr(const Command& cmd) {
+    // DECR requires exactly 1 argument: the key
+    if (cmd.args.size() < 2) {
+        return RespSerializer::error(
+            "wrong number of arguments for 'DECR'"
+        );
+    }
+
+    auto result = store_.decr(cmd.args[1]);
+
+    if (!result.ok) {
+        return RespSerializer::error(result.error);
+    }
+
+    return RespSerializer::integer(result.value);
 }

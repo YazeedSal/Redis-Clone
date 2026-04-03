@@ -44,6 +44,20 @@ public:
     // Supports * (any sequence) and ? (any single character) wildcards.
     std::vector<std::string> keys(const std::string& pattern);
 
+    // INCR key
+    // Increments the integer value of a key by 1.
+    // If the key doesn't exist, starts from 0.
+    // Returns the new value, or an error string if the value isn't an integer.
+    // We use a struct to return either a value or an error cleanly.
+    struct IncrResult {
+    	bool ok;
+    	int value;
+    	std::string error;
+    };
+
+    IncrResult incr(const std::string& key);
+    IncrResult decr(const std::string& key);
+
 private:
     // The main key-value store
     std::unordered_map<std::string, std::string> data_;
