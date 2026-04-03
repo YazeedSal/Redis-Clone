@@ -93,3 +93,20 @@ jobs:
             exit 1
           fi
           echo "KEYS passed: $response"
+
+      - name: Test INCR and DECR
+        run: |
+          redis-cli -p 6379 SET counter 10
+          redis-cli -p 6379 INCR counter
+          response=$(redis-cli -p 6379 INCR counter)
+          if [ "$response" != "12" ]; then
+            echo "INCR test failed: got '$response'"
+            exit 1
+          fi
+          redis-cli -p 6379 DECR counter
+          response=$(redis-cli -p 6379 DECR counter)
+          if [ "$response" != "10" ]; then
+            echo "DECR test failed: got '$response'"
+            exit 1
+          fi
+          echo "INCR/DECR passed"
