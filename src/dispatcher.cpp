@@ -25,6 +25,7 @@ std::string Dispatcher::dispatch(const Command& cmd) {
     if (name == "KEYS")   return handle_keys(cmd);
     if (name == "INCR")   return handle_incr(cmd);
     if (name == "DECR")   return handle_decr(cmd);
+    if (name == "APPEND")  return handle_append(cmd);
    
     return RespSerializer::error(
         "unknown command '" + cmd.args[0] + "'"
@@ -196,4 +197,16 @@ std::string Dispatcher::handle_decr(const Command& cmd) {
     }
 
     return RespSerializer::integer(result.value);
+}
+
+std::string Dispatcher::handle_append(const Command& cmd) {
+    // APPEND requires exactly 2 arguments: key and value
+    if (cmd.args.size() < 3) {
+        return RespSerializer::error(
+            "wrong number of arguments for 'APPEND'"
+        );
+    }
+
+    int new_length = store_.append(cmd.args[1], cmd.args[2]);
+    return RespSerializer::integer(new_length);
 }

@@ -58,6 +58,12 @@ public:
     IncrResult incr(const std::string& key);
     IncrResult decr(const std::string& key);
 
+    // APPEND key value
+    // Appends value to the end of the string stored at key.
+    // If key doesn't exist, creates it with value (like SET).
+    // Returns the new length of the string after appending.
+    int append(const std::string& key, const std::string& value);
+
 private:
     // The main key-value store
     std::unordered_map<std::string, std::string> data_;

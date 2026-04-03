@@ -29,4 +29,5 @@ private:
     std::string handle_keys(const Command& cmd);
     std::string handle_incr(const Command& cmd);
     std::string handle_decr(const Command& cmd);
+    std::string handle_append(const Command& cmd);
 };

@@ -226,3 +226,18 @@ Store::IncrResult Store::decr(const std::string& key) {
     return incr_by(data_, key, -1);
 }
 
+int Store::append(const std::string& key, const std::string& value) {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    // If key has expired, treat it as non-existent
+    if (is_expired(key)) {
+        expiry_.erase(key);
+    }
+
+    // operator+= on std::string appends in place.
+    // If key doesn't exist, data_[key] is default-constructed
+    // as an empty string, so appending to it is the same as SET.
+    data_[key] += value;
+
+    return static_cast<int>(data_[key].size());
+}
