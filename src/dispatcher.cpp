@@ -22,6 +22,7 @@ std::string Dispatcher::dispatch(const Command& cmd) {
     if (name == "EXISTS") return handle_exists(cmd);
     if (name == "EXPIRE") return handle_expire(cmd);
     if (name == "TTL")    return handle_ttl(cmd);
+    if (name == "KEYS")   return handle_keys(cmd);
 
     return RespSerializer::error(
         "unknown command '" + cmd.args[0] + "'"
@@ -133,4 +134,29 @@ std::string Dispatcher::handle_ttl(const Command& cmd) {
 
     int result = store_.ttl(cmd.args[1]);
     return RespSerializer::integer(result);
+}
+
+std::string Dispatcher::handle_keys(const Command& cmd) {
+    // KEYS requires exactly 1 argument: the pattern
+    // KEYS *
+    // KEYS n?me
+    if (cmd.args.size() < 2) {
+        return RespSerializer::error(
+            "wrong number of arguments for 'KEYS'"
+        );
+    }
+
+    std::vector<std::string> result = store_.keys(cmd.args[1]);
+
+    // KEYS returns a RESP array of bulk strings.
+    // We need to build it manually since RespSerializer
+    // doesn't have an array method yet.
+    //
+    // Format: *<count>\r\n followed by one bulk string per key
+    std::string response = "*" + std::to_string(result.size()) + "\r\n";
+    for (const auto& key : result) {
+        response += RespSerializer::bulk_string(key);
+    }
+
+    return response;
 }

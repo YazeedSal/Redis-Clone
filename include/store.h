@@ -5,6 +5,7 @@
 #include <optional>
 #include <chrono>
 #include <mutex>
+#include <vector>
 
 class Store {
 public:
@@ -37,6 +38,11 @@ public:
     // Returns -1 if the key exists but has no expiry.
     // Returns -2 if the key doesn't exist or has expired.
     int ttl(const std::string& key);
+
+    // KEYS pattern
+    // Returns all keys matching the given pattern.
+    // Supports * (any sequence) and ? (any single character) wildcards.
+    std::vector<std::string> keys(const std::string& pattern);
 
 private:
     // The main key-value store

@@ -109,3 +109,62 @@ int Store::ttl(const std::string& key) {
 
     return static_cast<int>(remaining.count());
 }
+
+
+
+
+// Pattern matching helper.
+// Returns true if `str` matches `pattern`.
+// Supports * and ? wildcards.
+// This is a private file-local function — nothing outside needs it.
+static bool match_pattern(const std::string& pattern, size_t p,
+                           const std::string& str, size_t s) {
+    // Base case — reached the end of the pattern
+    if (p == pattern.size()) {
+        // Match only if we also reached the end of the string
+        return s == str.size();
+    }
+
+    if (pattern[p] == '*') {
+        // '*' can match zero characters — skip the '*' and try
+        // OR match one character — advance s and try again with same '*'
+        return match_pattern(pattern, p + 1, str, s) ||
+               (s < str.size() && match_pattern(pattern, p, str, s + 1));
+    }
+
+    if (pattern[p] == '?') {
+        // '?' matches exactly one character — both must advance
+        return s < str.size() &&
+               match_pattern(pattern, p + 1, str, s + 1);
+    }
+
+    // Regular character — must match exactly
+    return s < str.size() &&
+           pattern[p] == str[s] &&
+           match_pattern(pattern, p + 1, str, s + 1);
+}
+
+std::vector<std::string> Store::keys(const std::string& pattern) {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    std::vector<std::string> result;
+
+    for (auto& [key, value] : data_) {
+        // Skip expired keys — check expiry without calling is_expired()
+        // directly since that modifies the map while we're iterating.
+        // Instead we check manually and collect expired keys separately.
+        auto exp_it = expiry_.find(key);
+        if (exp_it != expiry_.end()) {
+            if (std::chrono::steady_clock::now() >= exp_it->second) {
+                continue; // expired — skip it
+            }
+        }
+
+        // Check if this key matches the pattern
+        if (match_pattern(pattern, 0, key, 0)) {
+            result.push_back(key);
+        }
+    }
+
+    return result;
+}

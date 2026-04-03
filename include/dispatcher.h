@@ -26,4 +26,5 @@ private:
     std::string handle_exists(const Command& cmd);
     std::string handle_expire(const Command& cmd);
     std::string handle_ttl(const Command& cmd);
+    std::string handle_keys(const Command& cmd);
 };
