@@ -13,6 +13,31 @@ cmake --build build
 ./build/redis_clone
 ```
 
+
+## Architecture
+
+The server is built in four clean layers, each with a single responsibility:
+Client (redis-cli)
+│  TCP / RESP protocol
+▼
+TCP Server        — accepts connections, spawns one thread per client
+│
+RESP Parser       — turns raw bytes into a Command struct
+│
+Dispatcher        — routes commands to the appropriate store method
+│
+Store             — thread-safe key-value store with expiry support
+│
+RESP Serializer   — formats responses back into RESP bytes
+│  TCP / RESP protocol
+▼
+Client (redis-cli)
+
+
+Concurrency is handled with a thread-per-client model. The Store is protected by a `std::mutex` to prevent data races across threads. Key expiry uses a lazy strategy — expired keys are detected and removed on access rather than by a background scanner.
+
+
+
 ## Supported Commands
 
 | Command | Syntax | Description |
@@ -29,13 +54,3 @@ cmake --build build
 | DECR | `DECR key` | Decrement integer value by 1, starts from 0 if missing |
 
 
-## Project Status
-
-| Component           | Status    |
-|---------------------|-----------|
-| TCP Server          | ✅ Done   |
-| RESP Parser         | ✅ Done   |
-| RESP Serializer     | ✅ Done   |
-| Key-Value Store     | ✅ Done   |
-| Command Dispatcher  | ✅ Done   |
-| CI (GitHub Actions) | ✅ Done   |
