@@ -64,6 +64,13 @@ public:
     // Returns the new length of the string after appending.
     int append(const std::string& key, const std::string& value);
 
+    // RENAME key newkey
+    // Renames key to newkey.
+    // If newkey already exists, it is overwritten.
+    // If key has a TTL, it carries over to newkey.
+    // Returns true if successful, false if key doesn't exist.
+    bool rename(const std::string& key, const std::string& newkey);
+
 private:
     // The main key-value store
     std::unordered_map<std::string, std::string> data_;

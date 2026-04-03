@@ -241,3 +241,36 @@ int Store::append(const std::string& key, const std::string& value) {
 
     return static_cast<int>(data_[key].size());
 }
+
+bool Store::rename(const std::string& key, const std::string& newkey) {
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    // Can't rename an expired or non-existent key
+    if (is_expired(key) || data_.find(key) == data_.end()) {
+        return false;
+    }
+
+    // If key and newkey are the same, nothing to do
+    if (key == newkey) {
+        return true;
+    }
+
+    // Move the value to the new key
+    data_[newkey] = std::move(data_[key]);
+    data_.erase(key);
+
+    // Move the TTL over to the new key if one exists.
+    // If newkey already had a TTL, it gets overwritten — correct behavior.
+    auto it = expiry_.find(key);
+    if (it != expiry_.end()) {
+        expiry_[newkey] = it->second;
+        expiry_.erase(it);
+    } else {
+        // newkey might have had its own TTL — clear it
+        // since the source key had no expiry
+        expiry_.erase(newkey);
+    }
+
+    return true;
+}
+

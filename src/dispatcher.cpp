@@ -26,6 +26,7 @@ std::string Dispatcher::dispatch(const Command& cmd) {
     if (name == "INCR")   return handle_incr(cmd);
     if (name == "DECR")   return handle_decr(cmd);
     if (name == "APPEND")  return handle_append(cmd);
+    if (name == "RENAME")  return handle_rename(cmd);
    
     return RespSerializer::error(
         "unknown command '" + cmd.args[0] + "'"
@@ -209,4 +210,21 @@ std::string Dispatcher::handle_append(const Command& cmd) {
 
     int new_length = store_.append(cmd.args[1], cmd.args[2]);
     return RespSerializer::integer(new_length);
+}
+
+std::string Dispatcher::handle_rename(const Command& cmd) {
+    // RENAME requires exactly 2 arguments: key and newkey
+    if (cmd.args.size() < 3) {
+        return RespSerializer::error(
+            "wrong number of arguments for 'RENAME'"
+        );
+    }
+
+    bool success = store_.rename(cmd.args[1], cmd.args[2]);
+
+    if (!success) {
+        return RespSerializer::error("no such key");
+    }
+
+    return RespSerializer::ok();
 }
