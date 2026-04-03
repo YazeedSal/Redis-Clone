@@ -51,5 +51,6 @@ Concurrency is handled with a thread-per-client model. The Store is protected by
 | KEYS | `KEYS pattern` | List keys matching pattern, supports * and ? wildcards |
 | INCR | `INCR key` | Increment integer value by 1, starts from 0 if missing |
 | DECR | `DECR key` | Decrement integer value by 1, starts from 0 if missing |
+| APPEND | `APPEND key value` | Append to a string value, returns new length |
 
 
