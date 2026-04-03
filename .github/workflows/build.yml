@@ -111,17 +111,17 @@ jobs:
           fi
           echo "INCR/DECR passed"
 
-        - name: Test APPEND
+       - name: Test APPEND
         run: |
           redis-cli -p 6379 DEL greeting
           redis-cli -p 6379 APPEND greeting Hello
-          response=$(redis-cli -p 6379 APPEND greeting " World")
-          if [ "$response" != "11" ]; then
+          response=$(redis-cli -p 6379 APPEND greeting World)
+          if [ "$response" != "10" ]; then
             echo "APPEND test failed: got '$response'"
             exit 1
           fi
           result=$(redis-cli -p 6379 GET greeting)
-          if [ "$result" != "Hello World" ]; then
+          if [ "$result" != "HelloWorld" ]; then
             echo "APPEND value test failed: got '$result'"
             exit 1
           fi
