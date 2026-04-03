@@ -81,7 +81,8 @@ jobs:
             exit 1
           fi
           echo "EXPIRE/TTL passed"
-          - name: Test KEYS
+
+      - name: Test KEYS
         run: |
           redis-cli -p 6379 SET key1 a
           redis-cli -p 6379 SET key2 b
