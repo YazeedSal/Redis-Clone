@@ -126,3 +126,19 @@ jobs:
             exit 1
           fi
           echo "APPEND passed"
+
+      - name: Test RENAME
+        run: |
+          redis-cli -p 6379 SET oldkey hello
+          redis-cli -p 6379 RENAME oldkey newkey
+          response=$(redis-cli -p 6379 GET newkey)
+          if [ "$response" != "hello" ]; then
+            echo "RENAME test failed: got '$response'"
+            exit 1
+          fi
+          gone=$(redis-cli -p 6379 GET oldkey)
+          if [ "$gone" != "" ]; then
+            echo "RENAME old key still exists: got '$gone'"
+            exit 1
+          fi
+          echo "RENAME passed"
