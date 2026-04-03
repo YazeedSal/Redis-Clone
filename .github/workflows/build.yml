@@ -81,3 +81,14 @@ jobs:
             exit 1
           fi
           echo "EXPIRE/TTL passed"
+          - name: Test KEYS
+        run: |
+          redis-cli -p 6379 SET key1 a
+          redis-cli -p 6379 SET key2 b
+          redis-cli -p 6379 SET other c
+          response=$(redis-cli -p 6379 KEYS "key*")
+          if [ -z "$response" ]; then
+            echo "KEYS test failed: got empty response"
+            exit 1
+          fi
+          echo "KEYS passed: $response"
