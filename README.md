@@ -53,6 +53,23 @@ The server implements the RESP2 protocol as defined in the Redis documentation. 
 ### Value storage as strings
 All values are stored internally as `std::string`, matching Redis's "everything is a string" philosophy for the string data type. Commands like `INCR` interpret the string as an integer at runtime and return an error if the conversion fails — the store itself remains type-agnostic.
 
+## Known Limitations
+
+- **Lazy expiry only** — expired keys are removed on access, not actively scanned. Keys that expire but are never accessed again stay in memory until the server restarts.
+- **Thread-per-client scaling** — each client spawns a new thread. This works well for low concurrency but would not scale to thousands of simultaneous connections.
+- **Single mutex** — all store operations are serialized behind one lock. Parallel reads are blocked unnecessarily.
+- **No persistence** — data lives in memory only. Restarting the server clears everything.
+- **RESP2 only** — the server speaks RESP2. RESP3, introduced in Redis 6, is not supported.
+- **Partial KEYS pattern matching** — only `*` and `?` wildcards are supported. Character class patterns like `[abc]` are not implemented.
+
+## Future Improvements
+
+- Active expiry via a background thread that periodically scans and removes expired keys
+- Reader-writer locks (`std::shared_mutex`) to allow parallel reads
+- Append-only file (AOF) persistence so data survives restarts
+- I/O multiplexing with `epoll` to replace thread-per-client
+- Support for additional data types — Lists, Sets, Hashes
+
 
 ## Supported Commands
 
