@@ -111,7 +111,7 @@ jobs:
           fi
           echo "INCR/DECR passed"
 
-       - name: Test APPEND
+      - name: Test APPEND
         run: |
           redis-cli -p 6379 DEL greeting
           redis-cli -p 6379 APPEND greeting Hello
