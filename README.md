@@ -24,6 +24,8 @@ cmake --build build
 | EXISTS | `EXISTS key` | Returns 1 if key exists, 0 otherwise |
 | EXPIRE | `EXPIRE key seconds` | Set a TTL on a key |
 | TTL | `TTL key` | Get remaining TTL, -1 if no expiry, -2 if missing |
+| KEYS | `KEYS pattern` | List keys matching pattern, supports * and ? wildcards |
+
 
 ## Project Status
 
